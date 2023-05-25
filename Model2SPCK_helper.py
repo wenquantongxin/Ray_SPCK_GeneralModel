@@ -51,18 +51,18 @@ class COMMPORTS:
         self.TCPportB_2_SPCK = None
         self.NoPort = None
         
-def AllCOMMPORTS(port_base):
+def AllCOMMPORTS(port):
     CommPorts = COMMPORTS()
-    CommPorts.HTTPport_2_PolicyServer = port_base
-    CommPorts.UDPport_in_SPCK = port_base + (12900-9900)
-    CommPorts.TCPportA_2_SPCK = port_base + ( 9600-9900)
-    CommPorts.TCPportB_2_SPCK = port_base + ( 9100-9900)
-    CommPorts.NoPort = port_base - 9900 + 1
+    CommPorts.HTTPport_2_PolicyServer = port
+    CommPorts.UDPport_in_SPCK = port + (12900-9900)
+    CommPorts.TCPportA_2_SPCK = port+ ( 9600-9900)
+    CommPorts.TCPportB_2_SPCK = port + ( 9100-9900)
+    CommPorts.NoPort = port - 9900 + 1
     return CommPorts
 
 # 检查TCP-A端口是否被占用
-def checkTCPA(port_base):
-    TCPportA_2_SPCK = AllCOMMPORTS(port_base).TCPportA_2_SPCK 
+def checkTCPA(port):
+    TCPportA_2_SPCK = AllCOMMPORTS(port).TCPportA_2_SPCK 
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     tcpA_in_use = False
@@ -105,8 +105,8 @@ def run_command(command):
     subprocess.run(command, shell=True)
 
 # 使用TCP-A启动SPCK RT    
-def OPEN_TCPA_SPCKrt(port_base):
-    CommPorts = AllCOMMPORTS(port_base)
+def OPEN_TCPA_SPCKrt(port):
+    CommPorts = AllCOMMPORTS(port)
     UDPport_in_SPCK = CommPorts.UDPport_in_SPCK
     TCPportA_2_SPCK = CommPorts.TCPportA_2_SPCK
     config_values = ReadConfig()
@@ -199,9 +199,9 @@ def ReadRandomSubvars():
                 values[match.group(1)] = float(match.group(2))
     return values['$_InitInput_A'], values['$_InitInput_B'], values['$_InitInput_C'], values['$_InitInput_D']
 
-def ReadSubvars_ByPort(port_base):
+def ReadSubvars_ByPort(port):
     values = {}
-    with open(f'./ParallelSPCKs/Model_Subvars_{AllCOMMPORTS(port_base).NoPort}.subvar', 'r') as file:
+    with open(f'./ParallelSPCKs/Model_Subvars_{AllCOMMPORTS(port).NoPort}.subvar', 'r') as file:
         # 读取文件的每一行
         for line in file:
             # 使用正则表达式匹配需要的行
@@ -211,21 +211,21 @@ def ReadSubvars_ByPort(port_base):
     return values['$_InitInput_A'], values['$_InitInput_B'], values['$_InitInput_C'], values['$_InitInput_D']
 
 # 将每个端口号上的每一个回合仿真的时间记录于Log中
-def RecordLogFile(port_base,CalLogName):
+def RecordLogFile(port,CalLogName):
     # 在每次迭代后，写入当前的port-base和时间戳
     try:
         with open(CalLogName, 'r') as f:
             lines = f.readlines()
-        index = port_base - 9900  # 计算要修改的行号
-        lines[index] = f"{port_base} {time.time()}\n"  # 修改对应的行
+        index = port - 9900  # 计算要修改的行号
+        lines[index] = f"{port} {time.time()}\n"  # 修改对应的行
         with open(CalLogName, 'w') as f:
             f.writelines(lines)
     except IndexError:
         pass
 
 # 检查TCP-A/B是否被占用 
-def checkTCP(port_base):
-    CommPorts = AllCOMMPORTS(port_base)
+def checkTCP(port):
+    CommPorts = AllCOMMPORTS(port)
     TCPportA_2_SPCK = CommPorts.TCPportA_2_SPCK
     TCPportB_2_SPCK = CommPorts.TCPportB_2_SPCK
     tcpA_in_use = False
@@ -370,10 +370,10 @@ def kill_process_on_port(port):
         os.kill(int(pid), signal.SIGKILL)
                     
 class SPCKenv():
-    def __init__(self,port_base):
-        self.port_base = port_base
+    def __init__(self,port):
+        self.port = port
         config_values = ReadConfig()
-        CommPorts = AllCOMMPORTS(port_base)
+        CommPorts = AllCOMMPORTS(port)
         self.Maxts = config_values.Maxtimesteps
         self.CtrlIt = config_values.ControlInterval
         self.isRand = config_values.isRandomInit
@@ -385,27 +385,27 @@ class SPCKenv():
         self.StateRecordProb = 0.01 # 在一定概率下记录当前回合状态量数据
         self.is_recording = False # 是否记录数据的标志变量
        
-        tcpA_in_use,tcpB_in_use = checkTCP(self.port_base)
+        tcpA_in_use,tcpB_in_use = checkTCP(self.port)
         if(tcpA_in_use == True and tcpB_in_use == True):
-            print("Python:端口",self.port_base,"的TCP-A/B均被占用,kill对应端口的SPCK")
+            print("Python:端口",self.port,"的TCP-A/B均被占用,kill对应端口的SPCK")
             kill_process_on_port(self.TCPA)
             time.sleep(2)
             kill_process_on_port(self.TCPB)
             time.sleep(random.uniform(0, 20))
-            OPEN_TCPA_SPCKrt(self.port_base) 
+            OPEN_TCPA_SPCKrt(self.port) 
             time.sleep(random.uniform(0, 10))
             
         if(tcpA_in_use == False and tcpB_in_use == True):    
-            print("Python:端口",self.port_base,"开启错误,应首先开启端口TCP-A,kill对应端口的SPCK")
+            print("Python:端口",self.port,"开启错误,应首先开启端口TCP-A,kill对应端口的SPCK")
             kill_process_on_port(self.TCPB)
             time.sleep(random.uniform(0, 20))
-            OPEN_TCPA_SPCKrt(self.port_base) 
+            OPEN_TCPA_SPCKrt(self.port) 
             time.sleep(random.uniform(0, 10))
             
         if(tcpA_in_use == False and tcpB_in_use == False):    
-            print("Python:端口",self.port_base,"将自动重启 TCP-A / B")
+            print("Python:端口",self.port,"将自动重启 TCP-A / B")
             time.sleep(random.uniform(0, 20))
-            OPEN_TCPA_SPCKrt(self.port_base) 
+            OPEN_TCPA_SPCKrt(self.port) 
             time.sleep(random.uniform(0, 10))
             
         if(tcpA_in_use == True and tcpB_in_use == False):
@@ -413,7 +413,7 @@ class SPCKenv():
         
     def reset(self):
         # 在每次迭代后，写入当前的port-base和时间戳
-        RecordLogFile(self.port_base,self.CalLogName)
+        RecordLogFile(self.port,self.CalLogName)
         config_values = ReadConfig()
         self.nowsteps = 0
         # 随机化环境subvars在server端控制
@@ -433,7 +433,7 @@ class SPCKenv():
         self.client_socket.connect((SERVER_ADDRESS, self.TCPB))
         time.sleep(0.5) 
         # SPCK完成与python的TCP连接时需要时间
-        var1, _, _, _ = ReadSubvars_ByPort(self.port_base)
+        var1, _, _, _ = ReadSubvars_ByPort(self.port)
         OBs = [math.sin(var1), 0, 0, 0]  
         OBs = np.array(OBs)
         # print("Python: OBs = ", OBs)
