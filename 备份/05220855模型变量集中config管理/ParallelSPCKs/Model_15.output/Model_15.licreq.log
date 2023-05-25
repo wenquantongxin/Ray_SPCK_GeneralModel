@@ -1,0 +1,41 @@
+*********************************************************
+License Requirements for Model:
+ Model_15
+*********************************************************
+KSO(solver):
+ - Model_15
+
+*********************************************************
+
+
+Body requirements:
+==================
+   ./.
+
+Marker requirements:
+=====================
+   ./.
+
+Joint requirements:
+===================
+   ./.
+
+Force requirements:
+===================
+   ./.
+
+Constraint requirements:
+=========================
+   ./.
+
+Result requirements:
+=========================
+   ./.
+
+Filter requirements:
+====================
+   ./.
+
+Primitive requirements:
+====================
+   ./.

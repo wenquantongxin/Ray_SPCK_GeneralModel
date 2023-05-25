@@ -1,0 +1,14 @@
+!file.version=3.6! Removing this line will make the file unreadable
+
+!**********************************************************************
+! State Sets
+!**********************************************************************
+stateset.begin (                    $ST___Dummy__ )
+   stset.joint.st.pos (   1 ,       $J_SlideBar                   ) = 1.68992552868543271E+01 ! Joint position states
+   stset.joint.st.pos (   1 ,       $J_Pole                       ) = -3.94567322742986804E+00 ! Joint position states
+   stset.joint.st.vel (   1 ,       $J_SlideBar                   ) = 1.80183830260766484E+01 ! Joint velocity states
+   stset.joint.st.vel (   1 ,       $J_Pole                       ) = 1.49340630201268993E+01 ! Joint velocity states
+stateset.end (                      $ST___Dummy__ )
+stset.time (                        $ST___Dummy__                 ) = 2.00000000000000000E+00 ! Time
+
+                                                                                                                                                                         
