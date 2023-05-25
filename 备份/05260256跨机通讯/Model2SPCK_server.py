@@ -68,11 +68,51 @@ def get_cli_args():
 if __name__ == "__main__":
     args = get_cli_args()
     config_values = helper.ReadConfig() 
+    isRandomInit = config_values.isRandomInit
+    # Server_workers表示Server启动的端口数
+    Server_workers =  config_values.Server_workers
+    # this_Workers表示本机启动的Client端口数，其他计算机上也会启动仿真端口
+    this_Workers = config_values.this_Workers
+    # this_StartWith表示本机启动的初始端口相对于9900的偏移地址
+    this_StartWith = config_values.this_StartWith
     # mainServer_IP4表示主机地址的末尾，server的IP地址为192.168.1.mainServer_IP4
     mainServer_IP4 = config_values.mainServer_IP4
     SERVER_ADDRESS = f"192.168.1.{mainServer_IP4}"
-    # Server_workers表示Server启动的端口数
-    Server_workers =  config_values.Server_workers
+        
+    CalLogName = config_values.CalLogName
+    # 删除原有SPCK与相关文件,但保留 Comm2SPCK.c' 与 'Comm2SPCK
+    folder_path = 'ParallelSPCKs'  # 文件夹路径
+    excluded_files = ['Comm2SPCK.c', 'Comm2SPCK']  # 排除的文件
+    helper.CleanParallelFolder(folder_path,excluded_files);
+    time.sleep(0.5)
+    
+    # 分发SPCK与subvars文件
+    helper.copy_and_modify_files('Model.spck', folder_path) # SPCK文件
+    helper.copy_files('Model_Subvars.subvar', folder_path)   # subvars文件
+    time.sleep(0.5)
+    
+    # 新建文本文件,以记录每次SPCK client的时间
+    with open(CalLogName, 'w') as f:
+        for _ in range(100):
+            f.write("\n")    
+            
+    # # 创建并开始另一个线程上以一定时间间隔重置subvars_X
+    if (isRandomInit == 1):
+        SimpackRandomInit = threading.Thread(target=helper.SubvarsAlwaysRandomInit, args=(this_StartWith,this_Workers,2)) # IntervalTIme = 2
+        SimpackRandomInit.start()
+        
+    # 串行启动SPCK
+    # 启动SPCK应在调试完成后放置于Model2SPCK_MultiClients.py内
+    print("\n\n启动Server所在主机的SPCK\n\n")
+    for port in range(args.port_base + this_StartWith , args.port_base + this_StartWith + this_Workers):
+        print("\n本机起始端口号:",args.port_base + this_StartWith)
+        print("START No.", port - args.port_base  + 1,"PORT among all Clients Computers")
+        
+        if (helper.checkTCPA(port)):
+            print(f"TCP port {helper.AllCOMMPORTS(port).TCPportA_2_SPCK} is in use, IGNORE STARTING THIS PORT.")
+        else:
+            helper.OPEN_TCPA_SPCKrt(port) 
+        time.sleep(0.5)
     
     # 启动Ray
     ray.init()

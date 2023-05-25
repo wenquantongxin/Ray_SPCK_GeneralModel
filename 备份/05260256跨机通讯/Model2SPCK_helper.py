@@ -357,50 +357,7 @@ def monitor_processes(processes, script_path, CalLogName, this_Workers, this_Sta
                                 process_info['last_update'] = time.time()                            
         time.sleep(ResetPortTimeout/5)  # 每约10秒检查一次 
 
-def Pre(port_base):
-    config_values = ReadConfig() 
-    isRandomInit = config_values.isRandomInit
-    # this_Workers表示本机启动的Client端口数，其他计算机上也会启动仿真端口
-    this_Workers = config_values.this_Workers
-    # this_StartWith表示本机启动的初始端口相对于9900的偏移地址
-    this_StartWith = config_values.this_StartWith
-    
-        
-    CalLogName = config_values.CalLogName
-    # 删除原有SPCK与相关文件,但保留 Comm2SPCK.c' 与 'Comm2SPCK
-    folder_path = 'ParallelSPCKs'  # 文件夹路径
-    excluded_files = ['Comm2SPCK.c', 'Comm2SPCK']  # 排除的文件
-    CleanParallelFolder(folder_path,excluded_files);
-    time.sleep(0.5)
-    
-    # 分发SPCK与subvars文件
-    copy_and_modify_files('Model.spck', folder_path) # SPCK文件
-    copy_files('Model_Subvars.subvar', folder_path)   # subvars文件
-    time.sleep(0.5)
-    
-    # 新建文本文件,以记录每次SPCK client的时间
-    with open(CalLogName, 'w') as f:
-        for _ in range(100):
-            f.write("\n")    
-            
-    # # 创建并开始另一个线程上以一定时间间隔重置subvars_X
-    if (isRandomInit == 1):
-        SimpackRandomInit = threading.Thread(target=SubvarsAlwaysRandomInit, args=(this_StartWith,this_Workers,2)) # IntervalTIme = 2
-        SimpackRandomInit.start()
-        
-    # 串行启动SPCK
-    # 启动SPCK应在调试完成后放置于Model2SPCK_MultiClients.py内
-    print("\n\n启动Server所在主机的SPCK\n\n")
-    for port in range(port_base + this_StartWith , port_base + this_StartWith + this_Workers):
-        print("\n本机起始端口号:",port_base + this_StartWith)
-        print("START No.", port - port_base  + 1,"PORT among all Clients Computers")
-        
-        if (checkTCPA(port)):
-            print(f"TCP port {AllCOMMPORTS(port).TCPportA_2_SPCK} is in use, IGNORE STARTING THIS PORT.")
-        else:
-            OPEN_TCPA_SPCKrt(port) 
-        time.sleep(0.5) 
-
+ 
 
 # 删除被多个进程占用的TCP端口        
 def kill_process_on_port(port):

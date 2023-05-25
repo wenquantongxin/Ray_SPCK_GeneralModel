@@ -1,0 +1,12 @@
+!file.version=3.6! Removing this line will make the file unreadable
+
+    !**********************************************************************
+    ! SubVars
+    !**********************************************************************
+    subvar($_InitInput_A, str= '-0.11')                                                             ! $_InitInput_A
+    subvar($_InitInput_B, str= '0')                                                             ! $_InitInput_B
+    subvar($_InitInput_C, str= '0')                                                             ! $_InitInput_C
+    subvar($_InitInput_D, str= '0')                                                             ! $_InitInput_D
+    subvar($_InitInput_E, str= '0')                                                             ! $_InitInput_E
+    subvar($_InitInput_F, str= '0')                                                             ! $_InitInput_F
+    
